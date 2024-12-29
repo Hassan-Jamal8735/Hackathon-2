@@ -25,7 +25,10 @@ const authMiddleware = (req, res, next) => {
 router.post('/events', authMiddleware, async (req, res) => {
   const { name, description, location, category, date } = req.body;
   const userId = req.user;  // From token verification
-
+ // Validate fields
+ if (!name || !description || !location || !category || !date) {
+  return res.status(400).json({ msg: 'All fields are required' });
+}
   const newEvent = new Event({
     name,
     description,
@@ -164,6 +167,39 @@ router.put('/:id', authMiddleware, async (req, res) => {
     res.json(event);
   } catch (error) {
     res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Get total user count
+router.get('/users/count', async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error', error });
+  }
+});
+
+// Get total event count
+router.get('/events/count', async (req, res) => {
+  try {
+    const count = await Event.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error', error });
+  }
+});
+
+// Get total RSVP count
+router.get('/rsvps/count', async (req, res) => {
+  try {
+    const count = await Event.aggregate([
+      { $unwind: '$attendees' }, // Unwind the attendees array
+      { $count: 'rsvpCount' },   // Count the total attendees
+    ]);
+    res.json({ count: count[0]?.rsvpCount || 0 });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error', error });
   }
 });
 

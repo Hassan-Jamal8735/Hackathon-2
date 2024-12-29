@@ -12,7 +12,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await API.post('/auth/register', formData);
-      alert('Registration successful!');
+      // alert('Registration successful!');
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.msg || 'Registration failed');
